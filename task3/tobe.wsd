@@ -1,0 +1,54 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+LAYOUT_LEFT_RIGHT()
+
+title C4 Context Diagram — RetailCore (TO-BE)
+
+Person(customer, "Клиенты", "Создают заказы, выбирают предложенный интервал, получают статусы")
+Person(csManager, "Клиентский сервис и поддержка", "Отслеживают статусы, обращения и эскалации")
+Person(businessUser, "Бизнес-пользователь", "Управленческие отчёты")
+
+' System(retailcore, "RetailCore", "Центральный контур обработки заказа:\n * Создание и обработка заказа\n * Расчет цен, скидок, промо\n * Резерв товаров\n * Доставка заказов\n * Оплата заказов")
+
+System_Ext(marketPlaces, "Маркетплейсы", "Розничные партнеры")
+System_Ext(deliveryServices, "Службы доставки", "Партнёрские логистические интеграции")
+System_Ext(paymentGateway, "Платёжный шлюз", "Оплаты заказов, расчет с партнерами")
+
+System_Boundary(retailCore, "RetailCore") {
+    Container(apiGateway, "API Gateway", "", "Gateway для работы с сервисами платформы")
+    Container(javaMonolith, "Java монолит", "", "Центральный контур обработки заказов")
+
+    Container(analyticsService, "Сервис аналитики", "", "Аналитические выгрузки")
+    Container(partnerIntegrations, "Партнерские интеграции", "", "")
+    Container(adminPanel, "Админ панель", "", "Инструмент для работы поддержки")
+
+    Container(promo, "Сервис управления промоакциями")
+
+    ContainerDb(oracleDb, "Oracle", "База данных заказов")
+    ContainerDb(clickhouseDb, "Clickhouse", "Данные для аналитики")
+
+    ContainerQueue(kafka, "Kafka", "Данные о заказах для асинхронной обработки")
+}
+
+Rel(customer, apiGateway, "Создает заказ и получает статус")
+Rel(marketPlaces, apiGateway, "Заказы, обновления, статусы")
+Rel(csManager, apiGateway, "Разбор обращений, ручные действия")
+Rel(businessUser, apiGateway, "Отчетные запросы")
+Rel(apiGateway, javaMonolith, "Создание заказов")
+Rel(javaMonolith, oracleDb, "Заказы, цены")
+Rel(apiGateway, analyticsService, "Аналитические выгрузки")
+Rel(apiGateway, adminPanel, "Просмотр и управление заказами пользователей")
+Rel(analyticsService, clickhouseDb, "Данные для аналитики")
+Rel(adminPanel, oracleDb, "Просмотр статусов заказов")
+
+Rel(oracleDb, kafka, "Асинхронная репликация данных")
+Rel(javaMonolith, paymentGateway, "Синхронный вызов")
+
+Rel(kafka, clickhouseDb, "Асинхронное чтение данных")
+Rel(kafka, promo, "Асинхронное начисление бонусов")
+Rel(kafka, partnerIntegrations, "Асинхронная отправка заказов в доставку")
+Rel(partnerIntegrations, deliveryServices, "Партнерские логистические интеграции")
+
+@enduml 
