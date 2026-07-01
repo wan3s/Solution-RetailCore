@@ -1,0 +1,28 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+LAYOUT_LEFT_RIGHT()
+
+title C4 Context Diagram — RetailCore (AS-IS)
+
+Person(customer, "Клиенты", "Создают заказы, выбирают предложенный интервал, получают статусы")
+Person(csManager, "Клиентский сервис и поддержка", "Отслеживают статусы, обращения и эскалации")
+Person(businessUser, "Бизнес-пользователь", "Управленческие отчёты")
+
+System(retailcore, "RetailCore", "Центральный контур обработки заказа:\n * Создание и обработка заказа\n * Расчет цен, скидок, промо\n * Резерв товаров\n * Доставка заказов\n * Оплата заказов")
+
+System_Ext(marketPlaces, "Маркетплейсы", "Розничные партнеры")
+System_Ext(oracleDb, "Oracle", "Единая база данных заказов, статусов и справочников")
+System_Ext(deliveryServices, "Службы доставки", "Партнёрские логистические интеграции")
+System_Ext(paymentGateway, "Платёжный шлюз", "Оплаты заказов, расчет с партнерами")
+
+Rel(customer, retailcore, "Создает заказ и получает статус")
+Rel(marketPlaces, retailcore, "Заказы, обновления, статусы")
+Rel(csManager, retailcore, "Разбор обращений, ручные действия")
+Rel(retailcore, deliveryServices, "Доставка заказов")
+Rel(retailcore, oracleDb, "Управление заказами, доставки, промо акции, цены")
+Rel(retailcore, paymentGateway, "Синхронный вызов, создание платёжной сессии")
+Rel(businessUser, retailcore, "Отчетные запросы")
+
+@enduml 
